@@ -1,6 +1,8 @@
 from collections.abc import Set
 from typing import List, Tuple, Union
 import requests
+import os  # Import the os module
+import subprocess
 
 class PDDLInterface:
 
@@ -25,7 +27,7 @@ class PDDLInterface:
                 f.write("a"+str(actor)+" ")
             f.write("- actor\n ")
 
-            f.write(")))\n")
+            f.write("))\n")
             f.close()
 
     @staticmethod
@@ -50,16 +52,22 @@ class PDDLInterface:
     @staticmethod
     # Completed already
     def generatePlan(domain: str, problem: str, plan: str, verbose=False):
-        data = {'domain': open(domain, 'r').read(), 'problem': open(problem, 'r').read()}
-        resp = requests.post('https://popf-cloud-solver.herokuapp.com/solve', verify=True, json=data).json()
-        if not 'plan' in resp['result']:
-            if verbose:
-                print("WARN: Plan was not found!")
-                print(resp)
+        # Ensure the OPTIC-cplex executable is executable
+        os.chmod("./agents/optic-cplex", 0o755)
+
+        # Call OPTIC-cplex to generate the plan
+        result = subprocess.run(["./agents/optic-cplex", domain, problem, "-o", plan], capture_output=True, text=True)
+
+        if verbose:
+            print(result.stdout)
+            if result.stderr:
+                print("Error:", result.stderr)
+
+        # Check if the plan was successfully generated
+        if result.returncode != 0:
+            print("WARN: Plan was not found!")
             return False
-        with open(plan, 'w') as f:
-            f.write(''.join([act for act in resp['result']['plan']]))
-        f.close()
+
         return True
 
 if __name__ == '__main__':
