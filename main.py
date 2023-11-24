@@ -7,7 +7,7 @@ if __name__ == '__main__':
 
     # parse command line arguments
     arg_parser = argparse.ArgumentParser()
-    arg_parser.add_argument('-f', help="configuration file", type=str, default='craftbots/config/2023part2_configuration.yaml')
+    arg_parser.add_argument('-f', help="configuration file", type=str, default='craftbots/config/2023part1_configuration.yaml')
     args = arg_parser.parse_args()
 
     # Simulation
@@ -21,3 +21,4 @@ if __name__ == '__main__':
     gui = CraftBotsGUI(sim)
     gui.start_window()
 
+    

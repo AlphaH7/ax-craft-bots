@@ -295,7 +295,7 @@ World Setup:
     value: 600
   max_nodes:
     _description: Maximum number of nodes.
-    value: 2
+    value: 10
   random_seed:
     _description: Random seed used if use_random_seed is checked.
     value: 789

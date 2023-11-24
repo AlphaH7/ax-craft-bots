@@ -10,7 +10,7 @@ class Assignment_Agent(Agent):
 
     class STATE:
         READY     = 0
-        PLANNING  = 1
+        PLANNING  = 1 
         EXECUTING = 2
         # this state skips the frame after
         # an action is dispatched to avoid
@@ -35,17 +35,17 @@ class Assignment_Agent(Agent):
     # Function to choose the next commands
     # Main function for writing plans etc.
     # does not execute anything, is purely for testing plan
-    def get_next_commands(self):
+    #def get_next_commands(self):
         # You can use this to test your PDDL
-        PDDLInterface.writeProblem(world_info=self.world_info)
+        #PDDLInterface.writeProblem(world_info=self.world_info)
 
         # Now try to generate a plan
-        PDDLInterface.generatePlan("agents/domain-craft-bots.pddl", "agents/problem.pddl", "agents/plan.pddl", verbose=True)
+        #PDDLInterface.generatePlan("agents/domain-craft-bots.pddl", "agents/problem.pddl", "agents/plan.pddl", verbose=True)
         
 
     # A more complete version, which only creates a plan etc if needed
     # Rename to get_next_commands(self) to use
-    def get_next_commands_v1(self):
+    def get_next_commands(self):
         #  Completed, do not need to edit
 
         # If they are ready for instructions
@@ -119,7 +119,30 @@ class Assignment_Agent(Agent):
         self.thinking = False
 
     # Function that actually carries out the action
-    # receives actions and params, 
+    # # receives actions and params, 
     def send_action(self, action, params):
-        # To be completed
-        print('no actions work yet!')
+        if action == 'move':
+            actor_id = params[0]
+            node_id = params[2]
+            self.api.move_to(actor_id, node_id)
+            
+        elif action == 'pick-up':
+            actor_id = params[0]
+            location = params[1]
+            colour = params[2]
+            for resource in self.world_info['resources'].values():
+                if location == resource['location'] and colour == resource['colour']:
+                    self.api.pick_up_resource(actor_id, resource['id'])
+                    
+        elif action == 'mine':
+            actor_id = params[0]
+            mine_id = params[1]
+            self.api.dig_at(actor_id, mine_id)
+            
+        elif action == 'start-building':
+            actor_id = params[0]
+            location_id = params[1]
+            task_id = params[2]
+            for task in self.world_info['tasks'].values():
+                if task['site'] is None:
+                    self.api.start_site(actor_id, task['id'])

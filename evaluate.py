@@ -35,7 +35,7 @@ if __name__ == '__main__':
         sim : Simulation = Simulation(args.f)
     else:
         print("Starting simulation with default config file: craftbots/config/simple_configuration.yaml")
-        sim : Simulation = Simulation(configuration_file="craftbots/config/simple_configuration.yaml")
+        sim : Simulation = Simulation(configuration_file="craftbots/config/2023part1_configuration.yaml")
 
     # make sure to use random seed
     Configuration.set_value(sim.config, "use_random_seed", True)

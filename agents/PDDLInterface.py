@@ -2,7 +2,6 @@ from collections.abc import Set
 from typing import List, Tuple, Union
 import requests
 import subprocess
-
 class PDDLInterface:
 
     COLOURS = ['red', 'blue', 'orange', 'black', 'green']
@@ -12,60 +11,97 @@ class PDDLInterface:
     # Function to write a problem file
     # Complete this function
 
-    def writeProblem(world_info, file="agents/problem-craftbots.pddl"):
-        # Function that will
+    def writeProblem(world_info, file="agents/problem.pddl"):
         with open(file, "w") as f:
-            # Writing domain and problem definition
-            f.write("(define (problem craft-bots-problem)\n")
+           
+            f.write("(define(problem craft-bots-problem)\n")
             f.write("(:domain craft-bots)\n")
 
-            # Writing objects
+            # Write objects
             f.write("(:objects\n")
-            actors = ["a" + str(actor_id) for actor_id in world_info["actors"].keys()]
-            locations = ["l" + str(node_id) for node_id in world_info["nodes"].keys()]
-            edges = ["e" + str(edge_id) for edge_id in world_info["edges"].keys()]
-            mines = ["m" + str(mine_id) for mine_id in world_info["mines"].keys()]
-            resources = ["red", "blue", "orange", "black", "green"]
-            tasks = ["t" + str(task_id) for task_id in world_info["tasks"].keys()]
-            f.write(" ".join(actors) + " - actor\n")
-            f.write(" ".join(edges) + " - edge\n")
-            f.write(" ".join(locations) + " - location\n")
-            f.write(" ".join(mines) + " - mine\n")
-            f.write(" ".join(resources) + " - resource\n")
-            f.write(" ".join(tasks) + " - task\n")
-            f.write(")\n")
+           
+            # Write actors
+            for actor in world_info['actors']:
+                f.write("a"+str(actor)+" ")
+            f.write(" - actor\n")
+           
+            # Write edges
+            for edge in world_info['edges']:
+                f.write("e"+str(edge)+" ")
+            f.write(" - edge\n")
+           
+            # Write nodes
+            for node in world_info['nodes']:
+                f.write("n"+str(node)+" ")
+            f.write(" - node\n")
+           
+            # Write mines
+            for mine in world_info['mines']:
+                f.write("m"+str(mine)+" ")
+            f.write(" - mine\n")
+           
+            # Write resources
+            for resource in PDDLInterface.COLOURS:
+                f.write(resource+" ")
+            f.write(" - resource\n")
+           
+            # Write tasks
+            for task in world_info['tasks']:
+                f.write("t"+str(task)+" ")
+            f.write(" - task\n")
 
-            # Writing initial state
+            f.write(")\n")
+           
+            # Write initial state
             f.write("(:init\n")
-            for actor_id, actor in world_info["actors"].items():
-                f.write(f"    (alocation a{actor_id} l{actor['node']})\n")
-                f.write(f"    (actorstate a{actor_id})\n")
+           
+            print(world_info)
+           
+            for actors_id, actor in world_info['actors'].items():
+                f.write("(state a"+str(actors_id)+")\n")
+                f.write("(actorloc a"+str(actors_id)+" n"+str(actor['node'])+")\n")
+                f.write("(= (carry_limit a"+str(actors_id)+") 0)\n")
+                for colour in PDDLInterface.COLOURS:
+                    f.write("(= (carrying a"+str(actors_id)+" "+colour+") 0)\n")
 
-            for mine_id, mine in world_info["mines"].items():
-                f.write(f"    (mlocation m{mine_id} l{mine['node']})\n")
-                f.write(f"    (mcolour m{mine_id} {['red', 'blue', 'orange', 'black', 'green'][mine['colour']]})\n")
-
-            for edge_id, edge in world_info["edges"].items():
-                f.write(f"    (connects l{edge['node_a']} l{edge['node_b']} e{edge_id})\n")
-                f.write(f"    (connects l{edge['node_b']} l{edge['node_a']} e{edge_id})\n")
-
-            for task_id, task in world_info["tasks"].items():
-                for i, res_count in enumerate(task["needed_resources"]):
-                    if res_count > 0:
-                        resource = ['red', 'blue', 'orange', 'black', 'green'][i]
-                        f.write(f"    (= (needed_resources {resource} l{task['node']} t{task_id}) {res_count})\n")
-
+            for mine_id, mine in world_info['mines'].items():
+                f.write("(mineloc m"+str(mine_id)+" n"+str(mine['node'])+")\n")
+                f.write("(available m"+str(mine_id)+" "+PDDLInterface.COLOURS[mine['colour']]+")\n")
+                       
+            for node, edge in world_info['edges'].items():
+                f.write("(connected n"+str(edge['node_a'])+" n"+str(edge['node_b'])+" e"+str(edge['id'])+")\n")
+                f.write("(connected n"+str(edge['node_b'])+" n"+str(edge['node_a'])+" e"+str(edge['id'])+")\n")
+                       
+               
+            totr = [0, 0, 0, 0, 0]
+           
+            for task_id, task in world_info['tasks'].items():
+                for i, resource in enumerate(task['needed_resources']):
+                    if resource > 0:  # Only write if the resource is needed
+                        f.write("(= (rfortask {} t{}) {})\n".format(PDDLInterface.COLOURS[i], task_id, resource))
+                        f.write("(= (rdeposit n{} {}) {})\n".format(task['node'], PDDLInterface.COLOURS[i], resource))
+                        totr[i] += resource
+               
+            for i, total in enumerate(totr):
+                if total > 0:  # Only write if the total resource is more than 0
+                    f.write("(= (max_resources {}) {})\n".format(PDDLInterface.COLOURS[i], total))
+                       
             f.write(")\n")
 
-            # Writing goal state
+            # Write goal state
             f.write("(:goal (and\n")
-            for task_id, task in world_info["tasks"].items():
-                for i, _ in enumerate(task["needed_resources"]):
-                    resource = ['red', 'blue', 'orange', 'black', 'green'][i]
-                    f.write(f"    (= (needed_resources {resource} l{task['node']} t{task_id}) 0)\n")
+           
+            # The goal is to complete all tasks
+            for task_id, task in world_info['tasks'].items():
+                for i, resource in enumerate(task['needed_resources']):
+                    if resource > 0:  # Only write if the resource is needed
+                        f.write("(= (rfortask {} t{}) 0)\n".format(PDDLInterface.COLOURS[i], task_id))
+                                     
             f.write("))\n")
 
             f.write(")\n")
+        f.close()
+
 
     @staticmethod
     def readPDDLPlan(file: str):
@@ -89,21 +125,12 @@ class PDDLInterface:
     @staticmethod
     # Completed already
     def generatePlan(domain: str, problem: str, plan: str, verbose=False):
-        # data = {'domain': open(domain, 'r').read(), 'problem': open(problem, 'r').read()}
-        ##resp = requests.post('https://popf-cloud-solver.herokuapp.com/solve', verify=True, json=data).json()
-        #if not 'plan' in resp['result']:
-        #    if verbose:
-        #        print("WARN: Plan was not found!")
-          #      print(resp)
-         #   return False
-        #with open(plan, 'w') as f:
-         #   f.write(''.join([act for act in resp['result']['plan']]))
-        #f.close()
-        # subprocess.run(["optic-cplex -N /home/alb23153/craft-bots-main/agents/domain-craft-bots.pddl /home/alb23153/craft-bots-main/agents/problem.pddl | awk '/Solution Found/{flag=1;next} flag {print}' | tail -n +4 > /home/alb23153/craft-bots-main/agents/plan.pddl "], shell = True, executable="/bin/bash")
+        print('\n\nCreating Plan !')
+        subprocess.run(["./agents/optic-cplex -N ./agents/domain-craft-bots.pddl ./agents/problem.pddl | awk '/Solution Found/{flag=1;next} flag {print}' | tail -n +4 > ./agents/plan.pddl "], shell = True, executable="/bin/bash")
+        print('\n\nCreated Plan!')
         return True
 
 if __name__ == '__main__':
     PDDLInterface.generatePlan("domain-craft-bots.pddl", "problem.pddl", "plan.pddl", verbose=True)
-    print("test arg 4")
     plan = PDDLInterface.readPDDLPlan('plan.pddl')
     print(plan)
