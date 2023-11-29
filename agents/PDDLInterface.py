@@ -59,19 +59,21 @@ class PDDLInterface:
            
             for actors_id, actor in world_info['actors'].items():
                 f.write("(state a"+str(actors_id)+")\n")
-                f.write("(actorloc a"+str(actors_id)+" n"+str(actor['node'])+")\n")
+                f.write("(aloc a"+str(actors_id)+" n"+str(actor['node'])+")\n")
                 f.write("(= (carry_limit a"+str(actors_id)+") 0)\n")
                 for colour in PDDLInterface.COLOURS:
                     f.write("(= (carrying a"+str(actors_id)+" "+colour+") 0)\n")
 
             for mine_id, mine in world_info['mines'].items():
-                f.write("(mineloc m"+str(mine_id)+" n"+str(mine['node'])+")\n")
+                f.write("(mloc m"+str(mine_id)+" n"+str(mine['node'])+")\n")
                 f.write("(available m"+str(mine_id)+" "+PDDLInterface.COLOURS[mine['colour']]+")\n")
                        
             for node, edge in world_info['edges'].items():
                 f.write("(connected n"+str(edge['node_a'])+" n"+str(edge['node_b'])+" e"+str(edge['id'])+")\n")
                 f.write("(connected n"+str(edge['node_b'])+" n"+str(edge['node_a'])+" e"+str(edge['id'])+")\n")
                        
+            for task_id, task in world_info['tasks'].items():
+                f.write("(site n"+str(task['node'])+" t"+str(task_id)+")\n")
                
             totr = [0, 0, 0, 0, 0]
            
@@ -125,9 +127,9 @@ class PDDLInterface:
     @staticmethod
     # Completed already
     def generatePlan(domain: str, problem: str, plan: str, verbose=False):
-        print('\n\nCreating Plan !')
+        print('Creating Plan !')
         subprocess.run(["./agents/optic-cplex -N ./agents/domain-craft-bots.pddl ./agents/problem.pddl | awk '/Solution Found/{flag=1;next} flag {print}' | tail -n +4 > ./agents/plan.pddl "], shell = True, executable="/bin/bash")
-        print('\n\nCreated Plan!')
+        print('Created Plan!')
         return True
 
 if __name__ == '__main__':

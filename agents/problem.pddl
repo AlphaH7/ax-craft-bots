@@ -1,7 +1,7 @@
 (define(problem craft-bots-problem)
 (:domain craft-bots)
 (:objects
-a28 a30 a29  - actor
+a30 a28 a29  - actor
 e2 e4 e6 e8 e9 e11 e13 e14 e16 e18 e20 e21  - edge
 n0 n1 n3 n5 n7 n10 n12 n15 n17 n19  - node
 m33 m31 m32 m34 m35  - mine
@@ -9,14 +9,6 @@ red blue orange black green  - resource
 t22 t23 t24 t25 t26 t27  - task
 )
 (:init
-(state a28)
-(actorloc a28 n7)
-(= (carry_limit a28) 0)
-(= (carrying a28 red) 0)
-(= (carrying a28 blue) 0)
-(= (carrying a28 orange) 0)
-(= (carrying a28 black) 0)
-(= (carrying a28 green) 0)
 (state a30)
 (actorloc a30 n7)
 (= (carry_limit a30) 0)
@@ -25,6 +17,14 @@ t22 t23 t24 t25 t26 t27  - task
 (= (carrying a30 orange) 0)
 (= (carrying a30 black) 0)
 (= (carrying a30 green) 0)
+(state a28)
+(actorloc a28 n7)
+(= (carry_limit a28) 0)
+(= (carrying a28 red) 0)
+(= (carrying a28 blue) 0)
+(= (carrying a28 orange) 0)
+(= (carrying a28 black) 0)
+(= (carrying a28 green) 0)
 (state a29)
 (actorloc a29 n7)
 (= (carry_limit a29) 0)
